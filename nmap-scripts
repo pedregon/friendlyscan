@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+while getopts 'lhc:o:d:' OPTION; do
+  case "$OPTION" in
+    l)
+      grep -r categories /usr/share/nmap/scripts/*.nse | grep -oP '".*?"' | sort -u | tr -d '"'
+      ;;
+    h)
+      echo "script usage: $(basename $0) [-l] [-h] [-c category] [-o filter] [-d name]" >&2
+      ;;
+    c)
+      VALUE="$OPTARG"
+      grep -r categories /usr/share/nmap/scripts/*.nse | grep $VALUE | cut -d: -f1
+      ;;
+    o)
+      VALUE="$OPTARG"
+      curl -v --silent https://svn.nmap.org/nmap/scripts/ 2>&1 | sed 's/<[^>]*>//g ; /^$/d' | sed -e "s/^.*>//" | grep -E '*.nse' | grep $VALUE | tr -d " "
+      ;;
+    d)
+      VALUE="$OPTARG"
+      curl -O -L https://svn.nmap.org/nmap/scripts/$VALUE
+      ;;
+    ?)
+      exit 1
+      ;;
+  esac
+done
+if [ $OPTIND -eq 1 ]; then
+    echo "script usage: $(basename $0) [-l] [-h] [-c category] [-o filter] [-d name]" >&2  
+fi
